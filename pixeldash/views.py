@@ -19,27 +19,31 @@ class IndexView(TemplateView):
 		api = twitter_auth()		
 		items = api.trends_place(23424768)[0]['trends']
 		trends = []
-		count = 0
+		# alterar este contador para rodar o loop 
+		count = 1
 		for item in items:
-			count += 1
-			if count <= 5:
+			if count <= 0:
+				count += 1
 				trends.append(item)		
 		tweets = []
 		for trend in trends:
 			tweet = api.search(
-				trend['name'],
+				q=trend['name'],
 				lang='pt-br',
-				count=1
+				count=1,
 			)
-			tweets.append(tweet_serialize(tweet[0]))
+			for t in tweet:	
+				tweets.append(tweet_serialize(t))
 		
-		#separa os trends que não possui hashtag
+		#separa os trends que não possuem hashtag
 		videos = []
+		count = 0
 		for item in items:
-			if item['name'][0] != "#":
+			if item['name'][0] != "#" and count <= 5:
+				count += 1
 				query = YouTubeVideoQuery()
 				client = YouTubeService()
-				query.vq = item['name'][0]
+				query.vq = item['name'].encode('utf-8')
 				query.max_results = 1
 				entry = client.YouTubeQuery(query).entry[0]
 				videos.append(video_entry_serialize(entry))			
